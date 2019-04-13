@@ -152,7 +152,7 @@ def RR_scheduling(process_list, time_quantum ):
 # Output_2 : Average Waiting Time
 # Assumptions:
 #       1. All tasks are CPU bound
-#       2. if 2 CPU bursts have the same remaining time, the one with smaller pid gets scheduled first
+#       2. if 2 CPU bursts have the same remaining time, the one with arrives earlier gets scheduled first
 #       3. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
 #       4. context switching overhead = 0
@@ -170,11 +170,15 @@ def SRTF_scheduling(process_list):
                 if p1.arrive_time <= current_t and p1.remaining_time > 0:
                     candidates.append(p1)
 
+            # if candidates:
+            #     srt = min(p2.remaining_time for p2 in candidates)
+            #     for p2 in candidates:
+            #         if p2.remaining_time == srt:
+            #             return p2, current_t
+
             if candidates:
-                srt = min(p2.remaining_time for p2 in candidates)
-                for p2 in candidates:
-                    if p2.remaining_time == srt:
-                        return p2, current_t
+                sp = sorted(candidates, key=lambda x: (x.remaining_time, x.arrive_time))
+                return sp[0], current_t
             else:  # no candidate, advance time by 1 unit to continue the search
                 current_t += 1
 
@@ -219,7 +223,7 @@ def SRTF_scheduling(process_list):
 # Assumptions:
 #       1. All tasks are CPU bound
 #       2. if 2 CPU bursts have the same prediction, the one with smaller burst time gets scheduled first
-#       3. if 2 CPU bursts have the same prediction and same burst time, the one with smaller pid gets scheduled first
+#       3. if 2 CPU bursts have the same prediction and same burst time, the one arrives earlier gets scheduled first
 #       4. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
 #       5. context switching overhead = 0
@@ -240,20 +244,24 @@ def SJF_scheduling(process_list, alpha):
                 if p1.arrive_time <= current_t and p1.remaining_time > 0:
                     candidates.append(p1)
 
-            if candidates:
-                sj = min(p2.burst_pd for p2 in candidates)
-                candidates_r2 = []
-                for p2 in candidates:
-                    if p2.burst_pd == sj:
-                        candidates_r2.append(p2)
+            # if candidates:
+            #     sj = min(p2.burst_pd for p2 in candidates)
+            #     candidates_r2 = []
+            #     for p2 in candidates:
+            #         if p2.burst_pd == sj:
+            #             candidates_r2.append(p2)
+            #
+            #     if len(candidates_r2) > 1:
+            #         bt = min(p3.burst_time for p3 in candidates_r2)
+            #         for p3 in candidates_r2:
+            #             if p3.burst_time == bt:
+            #                 return p3, current_t
+            #     else:
+            #         return candidates_r2[0], current_t
 
-                if len(candidates_r2) > 1:
-                    bt = min(p3.burst_time for p3 in candidates_r2)
-                    for p3 in candidates_r2:
-                        if p3.burst_time == bt:
-                            return p3, current_t
-                else:
-                    return candidates_r2[0], current_t
+            if candidates:
+                sp = sorted(candidates, key=lambda x: (x.burst_pd, x.burst_time, x.arrive_time))
+                return sp[0], current_t
 
             else:  # no candidate, advance time by 1 unit to continue the search
                 current_t += 1
