@@ -97,9 +97,9 @@ def FCFS_scheduling(process_list):
 def RR_scheduling(process_list, time_quantum ):
     # to store the (switching time, process_id) pair
     schedule = []
-
     current_time = 0
     waiting_time = 0
+    current_p = -1  # save the current process in processing, use -1 as default value for initialization
 
     processes = list(set(p.pid for p in process_list))  # list of distinct processes
     p_count = len(processes)         # total number of processes
@@ -108,10 +108,8 @@ def RR_scheduling(process_list, time_quantum ):
     # create queues to hold inputs according to process id
     queues = []
     for i in range(p_count):
-        queues.append(Queue(i, process_list))
+        queues.append(Queue(processes[i], process_list))
         queues[i].print_q()
-
-    current_p = -1  # save the current process in processing, use -1 as default value for initialization
 
     # continue processing while any queue is non-empty
     while sum(q.is_non_empty() for q in queues):
@@ -159,9 +157,7 @@ def RR_scheduling(process_list, time_quantum ):
 def SRTF_scheduling(process_list):
     # to store the (switching time, process_id) pair
     schedule = []
-
     waiting_time = 0
-
     current_p = -1  # save the current process in processing, use -1 as default value for initialization
 
     def find_srt(p_list, current_t):
@@ -214,9 +210,26 @@ def SRTF_scheduling(process_list):
 
     return schedule, average_waiting_time
 
-
+# Input: process_list, alpha (0<= alpha <=1)
+# Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
+# Output_2 : Average Waiting Time
+# Assumptions:
+#       1. All tasks are CPU bound
+#       2. if 2 CPU bursts have the same prediction, the one with smaller pid gets scheduled first
+#       3. the time parameters are using the minimum time unit,
+#           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
+#       4. context switching overhead = 0
 def SJF_scheduling(process_list, alpha):
-    return ["to be completed, scheduling SJF without using information from process.burst_time"],0.0
+    # to store the (switching time, process_id) pair
+    schedule = []
+
+    waiting_time = 0
+
+
+
+    average_waiting_time = waiting_time/float(len(process_list))
+
+    return schedule, average_waiting_time
 
 
 def read_input():
