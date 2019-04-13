@@ -14,8 +14,8 @@ import logging
 # change logging level from INFO to DEBUG to print debugging logs
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(funcName)s - %(lineno)d - %(message)s')
 
-input_file = 'test_input.txt'
-# input_file = 'input.txt'
+# input_file = 'test_input.txt'
+input_file = 'input.txt'
 
 
 class Process:
