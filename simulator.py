@@ -9,7 +9,7 @@
 #     SRTF.txt
 #     SJF.txt
 # '''
-
+import sys
 import logging
 # change logging level from INFO to DEBUG to print debugging logs
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(funcName)s - %(lineno)d - %(message)s')
@@ -63,7 +63,7 @@ class Queue:
 
 
 def FCFS_scheduling(process_list):
-    # store the (switching time, process_id) pair
+    # to store the (switching time, process_id) pair
     schedule = []
     current_time = 0
     waiting_time = 0
@@ -78,6 +78,7 @@ def FCFS_scheduling(process_list):
         process.departure_time = current_time
         waiting_time += process.departure_time - process.arrive_time - process.burst_time
 
+    print("FCFS: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
 
     return schedule, average_waiting_time
@@ -87,9 +88,11 @@ def FCFS_scheduling(process_list):
 # Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
 # Assumptions:
-#       if 2 CPU bursts arrives at the same time, the one with smaller pid gets scheduled first
-#       the time parameters are using the minimum time unit,
+#       1. All tasks are CPU bound
+#       2. if 2 CPU bursts arrives at the same time, the one with smaller pid gets scheduled first
+#       3. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
+#       4. context switching overhead = 0
 
 def RR_scheduling(process_list, time_quantum ):
     # to store the (switching time, process_id) pair
@@ -99,9 +102,8 @@ def RR_scheduling(process_list, time_quantum ):
     waiting_time = 0
 
     processes = list(set(p.pid for p in process_list))  # list of distinct processes
-    input_count = len(process_list)  # total number of inputs (CPU bursts)
     p_count = len(processes)         # total number of processes
-    print("Total number of input = {}; total number of processes = {}".format(input_count, p_count))
+    print("Total number of input = {}; total number of processes = {}".format(len(process_list), p_count))
 
     # create queues to hold inputs according to process id
     queues = []
@@ -139,14 +141,78 @@ def RR_scheduling(process_list, time_quantum ):
             # there's no process in the queues at current_time
             current_time += 1   # advance current time by 1 unit
 
-    average_waiting_time = waiting_time/float(input_count)
+    print("RR: completion time = {}".format(current_time))
+    average_waiting_time = waiting_time/float(len(process_list))
 
     return schedule, average_waiting_time
 
 
+# Input: process_list
+# Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
+# Output_2 : Average Waiting Time
+# Assumptions:
+#       1. All tasks are CPU bound
+#       2. if 2 CPU bursts have the same remaining time, the one with smaller pid gets scheduled first
+#       3. the time parameters are using the minimum time unit,
+#           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
+#       4. context switching overhead = 0
 def SRTF_scheduling(process_list):
-    return ["to be completed, scheduling process_list on SRTF, "
-            "using process.burst_time to calculate the remaining time of the current process "], 0.0
+    # to store the (switching time, process_id) pair
+    schedule = []
+
+    waiting_time = 0
+
+    current_p = -1  # save the current process in processing, use -1 as default value for initialization
+
+    def find_srt(p_list, current_t):
+        # find the job with shortest remaining time (srt) at current time
+        candidates = []
+        while sum(p1.remaining_time for p1 in p_list) > 0:  # there is still unfinished CPU burst
+            for p1 in p_list:
+                if p1.arrive_time <= current_t and p1.remaining_time > 0:
+                    candidates.append(p1)
+
+            if candidates:
+                srt = min(p2.remaining_time for p2 in candidates)
+                for p2 in candidates:
+                    if p2.remaining_time == srt:
+                        return p2, current_t
+            else:  # no candidate, advance time by 1 unit to continue the search
+                current_t += 1
+
+    for i in range(len(process_list)):
+        current_time = process_list[i].arrive_time
+
+        if i == len(process_list) - 1:
+            # since no more arrival event is scheduled, set the next arrival to the max value (int)
+            next_arrival = sys.maxsize
+            logging.info("Set next arrival after last arrival to {}".format(next_arrival))
+        else:
+            next_arrival = process_list[i + 1].arrive_time
+
+        while current_time < next_arrival:  # before next arrival
+            p, current_time = find_srt(process_list, current_time)
+            if current_p != p.pid:
+                schedule.append((current_time, p.pid))  # record the process switching
+                current_p = p.pid
+
+            if p.remaining_time <= next_arrival - current_time:
+                # advance current time to completion of current burst only and then look for next candidate
+                current_time += p.remaining_time
+                p.remaining_time = 0
+                p.departure_time = current_time
+                waiting_time += p.departure_time - p.arrive_time - p.burst_time
+            else:
+                p.remaining_time -= (next_arrival - current_time)
+                current_time = next_arrival
+
+            if sum(p.remaining_time for p in process_list) == 0:
+                print("SRTF: completion time = {}".format(current_time))
+                break
+
+    average_waiting_time = waiting_time/float(len(process_list))
+
+    return schedule, average_waiting_time
 
 
 def SJF_scheduling(process_list, alpha):
