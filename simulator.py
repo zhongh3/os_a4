@@ -90,11 +90,13 @@ def FCFS_scheduling(process_list):
 # Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
 # Assumptions:
-#       1. All tasks are CPU bound
+#       1. all tasks are CPU bound
 #       2. if 2 CPU bursts arrives at the same time, the one with smaller pid gets scheduled first
 #       3. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
 #       4. context switching overhead = 0
+#       5. the scheduler goes around processes following the same sequence all the time
+#           e.g. [4 processes] 0 -> 1 -> 2 -> 3 ->0
 
 def RR_scheduling(process_list, time_quantum ):
     # to store the (switching time, process_id) pair
@@ -151,7 +153,7 @@ def RR_scheduling(process_list, time_quantum ):
 # Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
 # Assumptions:
-#       1. All tasks are CPU bound
+#       1. all tasks are CPU bound
 #       2. if 2 CPU bursts have the same remaining time, the one with arrives earlier gets scheduled first
 #       3. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
@@ -221,12 +223,12 @@ def SRTF_scheduling(process_list):
 # Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
 # Assumptions:
-#       1. All tasks are CPU bound
-#       2. if 2 CPU bursts have the same prediction, the one with smaller burst time gets scheduled first
-#       3. if 2 CPU bursts have the same prediction and same burst time, the one arrives earlier gets scheduled first
-#       4. the time parameters are using the minimum time unit,
+#       1. all tasks are CPU bound
+#       2. if 2 CPU bursts have the same prediction, tthe one arrives earlier gets scheduled first
+#          * this approach assumes that the scheduler doesn't know the burst size, therefore, it's using the estimation
+#       3. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
-#       5. context switching overhead = 0
+#       4. context switching overhead = 0
 def SJF_scheduling(process_list, alpha):
     # to store the (switching time, process_id) pair
     schedule = []
@@ -260,7 +262,9 @@ def SJF_scheduling(process_list, alpha):
             #         return candidates_r2[0], current_t
 
             if candidates:
-                sp = sorted(candidates, key=lambda x: (x.burst_pd, x.burst_time, x.arrive_time))
+                # sp = sorted(candidates, key=lambda x: (x.burst_pd, x.burst_time, x.arrive_time))
+                # assumes that the scheduler doesn't know the burst_time, otherwise, it shouldn't use the predicted size
+                sp = sorted(candidates, key=lambda x: (x.burst_pd, x.arrive_time))
                 return sp[0], current_t
 
             else:  # no candidate, advance time by 1 unit to continue the search
