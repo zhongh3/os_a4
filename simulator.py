@@ -14,8 +14,8 @@ import logging
 # change logging level from INFO to DEBUG to print debugging logs
 logging.basicConfig(level=logging.INFO, format='%(levelname)s - %(funcName)s - %(lineno)d - %(message)s')
 
-# input_file = 'test_input.txt'
-input_file = 'input.txt'
+input_file = 'test_input.txt'
+# input_file = 'input.txt'
 
 
 class Process:
@@ -27,16 +27,18 @@ class Process:
         self.burst_time = burst_time
         self.remaining_time = burst_time
         self.departure_time = -1
+        self.burst_pd = 5  # initial guess of burst size = 5
 
     # for printing purpose
     def __repr__(self):
         # return '[pid %d : arrival_time %d,  burst_time %d]' % (self.pid, self.arrive_time, self.burst_time)
-        return "[pid {}: arrive at {}, burst_time = {}, remaining_time = {}, departure at {}]".\
-            format(self.pid, self.arrive_time, self.burst_time, self.remaining_time, self.departure_time)
+        return "[pid {}: arrive = {}, burst_time = {}, remaining_time = {}, departure = {}, burst_pd = {}]".\
+            format(self.pid, self.arrive_time, self.burst_time, self.remaining_time, self.departure_time, self.burst_pd)
 
     def reset(self):
         self.remaining_time = self.burst_time
         self.departure_time = -1
+        self.burst_pd = 5
 
 
 class Queue:
@@ -109,7 +111,7 @@ def RR_scheduling(process_list, time_quantum ):
     queues = []
     for i in range(p_count):
         queues.append(Queue(processes[i], process_list))
-        queues[i].print_q()
+        # queues[i].print_q()
 
     # continue processing while any queue is non-empty
     while sum(q.is_non_empty() for q in queues):
@@ -210,26 +212,80 @@ def SRTF_scheduling(process_list):
 
     return schedule, average_waiting_time
 
+
 # Input: process_list, alpha (0<= alpha <=1)
 # Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
 # Assumptions:
 #       1. All tasks are CPU bound
-#       2. if 2 CPU bursts have the same prediction, the one with smaller pid gets scheduled first
-#       3. the time parameters are using the minimum time unit,
+#       2. if 2 CPU bursts have the same prediction, the one with smaller burst time gets scheduled first
+#       3. if 2 CPU bursts have the same prediction and same burst time, the one with smaller pid gets scheduled first
+#       4. the time parameters are using the minimum time unit,
 #           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
-#       4. context switching overhead = 0
+#       5. context switching overhead = 0
 def SJF_scheduling(process_list, alpha):
     # to store the (switching time, process_id) pair
     schedule = []
-
+    current_time = 0
     waiting_time = 0
+    current_p = -1  # save the current process in processing, use -1 as default value for initialization
 
+    calc_burst_pd(process_list, alpha)
 
+    def find_sj(p_list, current_t):
+        # find the shortest job (minimum burst prediction) at current time
+        candidates = []
+        while sum(p1.remaining_time for p1 in p_list) > 0:  # there is still unfinished CPU burst
+            for p1 in p_list:
+                if p1.arrive_time <= current_t and p1.remaining_time > 0:
+                    candidates.append(p1)
 
+            if candidates:
+                sj = min(p2.burst_pd for p2 in candidates)
+                candidates_r2 = []
+                for p2 in candidates:
+                    if p2.burst_pd == sj:
+                        candidates_r2.append(p2)
+
+                if len(candidates_r2) > 1:
+                    bt = min(p3.burst_time for p3 in candidates_r2)
+                    for p3 in candidates_r2:
+                        if p3.burst_time == bt:
+                            return p3, current_t
+                else:
+                    return candidates_r2[0], current_t
+
+            else:  # no candidate, advance time by 1 unit to continue the search
+                current_t += 1
+
+    for p in process_list:
+        while p.remaining_time > 0:
+            if current_time <= p.arrive_time:
+                current_time = p.arrive_time
+
+            q, current_time = find_sj(process_list, current_time)
+            if current_p != q.pid:
+                schedule.append((current_time, q.pid))  # record the process switching
+                current_p = q.pid
+
+            # advance current time to completion of current burst
+            current_time += q.burst_time
+            q.remaining_time = 0
+            q.departure_time = current_time
+            waiting_time += q.departure_time - q.arrive_time - q.burst_time
+
+    print("SJF: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
 
     return schedule, average_waiting_time
+
+
+def calc_burst_pd(p_list, alpha):
+    for i in range(len(p_list)):
+        for j in range(i - 1, -1, -1):
+            if p_list[j].pid == p_list[i].pid:  # find the previous CPU burst of the same process
+                p_list[i].burst_pd = alpha * p_list[j].burst_time + (1 - alpha) * p_list[j].burst_pd
+                break
 
 
 def read_input():
@@ -288,7 +344,6 @@ def main():
 
     for p in process_list:
         print(p)
-
 
 
 if __name__ == '__main__':
