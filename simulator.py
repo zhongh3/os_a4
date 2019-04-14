@@ -86,18 +86,25 @@ def FCFS_scheduling(process_list):
     return schedule, average_waiting_time
 
 
+# ===========================================================================================
+# RR: Round Robin
+# ------------------
 # Input: process_list, time_quantum (Positive Integer)
-# Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
+# Output_1 : Schedule list contains pairs of (time_stamp, process_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
+#
 # Assumptions:
-#       1. all tasks are CPU bound
-#       2. if 2 CPU bursts arrives at the same time, the one with smaller pid gets scheduled first
-#       3. the time parameters are using the minimum time unit,
-#           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
-#       4. context switching overhead = 0
-#       5. the scheduler goes around processes following the same sequence all the time
-#           e.g. [4 processes] 0 -> 1 -> 2 -> 3 ->0
-
+#       1. All tasks are CPU bound
+#       2. All time parameters are using the minimum time unit. i.e.
+#           •	The minimum time advancement is 1 unit.
+#           •	All CPU bursts arrive and departure at integer time
+#           •	All burst sizes are integer values
+#           •	Context switching only happens at integer time
+#       3. Context switching overhead is 0.
+#       4. The scheduler goes around processes following process IDs in ascending order,
+#          starting from the smallest process ID.
+#          e.g. [4 processes] 0 -> 1 -> 2 -> 3 ->0
+# ===========================================================================================
 def RR_scheduling(process_list, time_quantum ):
     # to store the (switching time, process_id) pair
     schedule = []
@@ -149,15 +156,23 @@ def RR_scheduling(process_list, time_quantum ):
     return schedule, average_waiting_time
 
 
+# ===========================================================================================
+# SRTF: Shortest Remaining Time First [preemptive]
+# --------------------------------------------------
 # Input: process_list
-# Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
+# Output_1 : Schedule list contains pairs of (time_stamp, process_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
+#
 # Assumptions:
-#       1. all tasks are CPU bound
-#       2. if 2 CPU bursts have the same remaining time, the one with arrives earlier gets scheduled first
-#       3. the time parameters are using the minimum time unit,
-#           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
-#       4. context switching overhead = 0
+#       1. All tasks are CPU bound
+#       2. All time parameters are using the minimum time unit. i.e.
+#           •	The minimum time advancement is 1 unit.
+#           •	All CPU bursts arrive and departure at integer time
+#           •	All burst sizes are integer values
+#           •	Context switching only happens at integer time
+#       3. Context switching overhead is 0.
+#       4. If 2 CPU bursts have the same remaining time, the one that arrives earlier gets scheduled first
+# ===========================================================================================
 def SRTF_scheduling(process_list):
     # to store the (switching time, process_id) pair
     schedule = []
@@ -219,16 +234,27 @@ def SRTF_scheduling(process_list):
     return schedule, average_waiting_time
 
 
+# ===========================================================================================
+# SJF: Shortest Job First [non-preemptive]
+# --------------------------------------------------
 # Input: process_list, alpha (0<= alpha <=1)
-# Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
+# Output_1 : Schedule list contains pairs of (time_stamp, process_id) indicating the time switching to that proccess_id
 # Output_2 : Average Waiting Time
+#
 # Assumptions:
-#       1. all tasks are CPU bound
-#       2. if 2 CPU bursts have the same prediction, tthe one arrives earlier gets scheduled first
-#          * this approach assumes that the scheduler doesn't know the burst size, therefore, it's using the estimation
-#       3. the time parameters are using the minimum time unit,
-#           i.e. the minimum time advancement is 1 unit and all bursts arrive at integer time unit (no fraction)
-#       4. context switching overhead = 0
+#       1. All tasks are CPU bound
+#       2. All time parameters are using the minimum time unit. i.e.
+#           •	The minimum time advancement is 1 unit.
+#           •	All CPU bursts arrive and departure at integer time
+#           •	All burst sizes are integer values
+#           •	Context switching only happens at integer time
+#       3. Context switching overhead is 0.
+#       4a. If 2 CPU bursts have the same prediction, the one arrives earlier gets scheduled first
+#           * this approach assumes that the scheduler doesn't know the burst size, it has to rely on the prediction
+#       4b. If 2 CPU bursts have the same prediction, the one with smaller burst size gets scheduled first
+#           If both prediction and burst size are the same, the one arrives earlier gets scheduled first
+#           * this approach combines SJF and SRTF, which gives more optimal results compared to 4a.
+# ===========================================================================================
 def SJF_scheduling(process_list, alpha):
     # to store the (switching time, process_id) pair
     schedule = []
@@ -262,9 +288,10 @@ def SJF_scheduling(process_list, alpha):
             #         return candidates_r2[0], current_t
 
             if candidates:
-                # sp = sorted(candidates, key=lambda x: (x.burst_pd, x.burst_time, x.arrive_time))
-                # assumes that the scheduler doesn't know the burst_time, otherwise, it shouldn't use the predicted size
+                # 4a. assumes that the scheduler doesn't know the burst_time
                 sp = sorted(candidates, key=lambda x: (x.burst_pd, x.arrive_time))
+                # 4b. combine SJF and SRTF. Uncomment the line below to enable 4b.
+                # sp = sorted(candidates, key=lambda x: (x.burst_pd, x.burst_time, x.arrive_time))
                 return sp[0], current_t
 
             else:  # no candidate, advance time by 1 unit to continue the search
