@@ -153,7 +153,7 @@ def RR_scheduling(process_list, time_quantum ):
 
     # print("RR: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
-    print("RR: avg waiting time = {:.2f}".format(average_waiting_time))
+    print("RR: Q = {:2d} average waiting time = {:.2f}".format(time_quantum, average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -318,7 +318,7 @@ def SJF_scheduling(process_list, alpha):
 
     # print("SJF: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
-    print("SJF: avg waiting time = {:.2f}".format(average_waiting_time))
+    print("SJF: alpha = {:3.2f} average waiting time = {:.2f}".format(alpha, average_waiting_time))
 
     return schedule, average_waiting_time
 
