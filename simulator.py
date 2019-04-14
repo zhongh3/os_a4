@@ -80,8 +80,9 @@ def FCFS_scheduling(process_list):
         process.departure_time = current_time
         waiting_time += process.departure_time - process.arrive_time - process.burst_time
 
-    print("FCFS: completion time = {}".format(current_time))
+    # print("FCFS: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
+    print("FCFS: avg waiting time = {:.2f}".format(average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -114,7 +115,7 @@ def RR_scheduling(process_list, time_quantum ):
 
     processes = list(set(p.pid for p in process_list))  # list of distinct processes
     p_count = len(processes)         # total number of processes
-    print("Total number of input = {}; total number of processes = {}".format(len(process_list), p_count))
+    # print("Total number of input = {}; total number of processes = {}".format(len(process_list), p_count))
 
     # create queues to hold inputs according to process id
     queues = []
@@ -150,8 +151,9 @@ def RR_scheduling(process_list, time_quantum ):
             # there's no process in the queues at current_time
             current_time += 1   # advance current time by 1 unit
 
-    print("RR: completion time = {}".format(current_time))
+    # print("RR: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
+    print("RR: avg waiting time = {:.2f}".format(average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -226,10 +228,11 @@ def SRTF_scheduling(process_list):
                 current_time = next_arrival
 
             if sum(p.remaining_time for p in process_list) == 0:
-                print("SRTF: completion time = {}".format(current_time))
+                # print("SRTF: completion time = {}".format(current_time))
                 break
 
     average_waiting_time = waiting_time/float(len(process_list))
+    print("SRTF: avg waiting time = {:.2f}".format(average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -313,8 +316,9 @@ def SJF_scheduling(process_list, alpha):
             q.departure_time = current_time
             waiting_time += q.departure_time - q.arrive_time - q.burst_time
 
-    print("SJF: completion time = {}".format(current_time))
+    # print("SJF: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
+    print("SJF: avg waiting time = {:.2f}".format(average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -383,6 +387,7 @@ def main():
 
     for p in process_list:
         print(p)
+        p.reset()
 
 
 if __name__ == '__main__':
