@@ -82,7 +82,7 @@ def FCFS_scheduling(process_list):
 
     # print("FCFS: completion time = {}".format(current_time))
     average_waiting_time = waiting_time/float(len(process_list))
-    print("FCFS: avg waiting time = {:.2f}".format(average_waiting_time))
+    print("FCFS: average waiting time = {:.2f}".format(average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -232,7 +232,7 @@ def SRTF_scheduling(process_list):
                 break
 
     average_waiting_time = waiting_time/float(len(process_list))
-    print("SRTF: avg waiting time = {:.2f}".format(average_waiting_time))
+    print("SRTF: average waiting time = {:.2f}".format(average_waiting_time))
 
     return schedule, average_waiting_time
 
@@ -256,7 +256,7 @@ def SRTF_scheduling(process_list):
 #           * this approach assumes that the scheduler doesn't know the burst size, it has to rely on the prediction
 #       4b. If 2 CPU bursts have the same prediction, the one with smaller burst size gets scheduled first
 #           If both prediction and burst size are the same, the one arrives earlier gets scheduled first
-#           * this approach combines SJF and SRTF, which gives more optimal results compared to 4a.
+#           * this approach assumes the CPU burst time is given. It gives more optimal results compared to 4a.
 # ===========================================================================================
 def SJF_scheduling(process_list, alpha):
     # to store the (switching time, process_id) pair
